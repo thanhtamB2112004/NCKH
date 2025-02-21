@@ -183,14 +183,22 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.surendramaran.yolov8tflite.databinding.FragmentResultBottomSheetBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import android.animation.ValueAnimator
+import androidx.core.animation.addListener
+import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.LinearLayoutManager
+import kotlinx.coroutines.withContext
 
 class ResultBottomSheetFragment : BottomSheetDialogFragment() {
     private var _binding: FragmentResultBottomSheetBinding? = null
     private val binding get() = _binding!!
     private lateinit var btnClose: Button
+    var resultsList: List<DetectionResult>? = null
+
 
     private lateinit var db: AppDatabase
-
+    // Biến trạng thái mở rộng hay thu gọn
+    var isExpanded = false
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -201,7 +209,6 @@ class ResultBottomSheetFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         db = Room.databaseBuilder(
             requireContext(),
             AppDatabase::class.java,
@@ -218,38 +225,57 @@ class ResultBottomSheetFragment : BottomSheetDialogFragment() {
         } else {
             binding.imgResult.setImageResource(android.R.drawable.stat_notify_error) // Ảnh mặc định nếu không có ảnh
         }
-        var insect = arrayOf("Bọ gai", "Rầy nâu", "Sâu cuốn lá")
-        var disease = arrayOf("Cháy bìa lá", "Đốm nâu", "Đạo ôn", "Bọ trĩ")
-        if (detectionResults != null) {
-            lifecycleScope.launch(Dispatchers.IO) {
+        var insect = arrayOf("Bọ trĩ", "Rầy nâu", "Sâu cuốn lá")
+        var disease = arrayOf("Cháy bìa lá", "Đốm nâu", "Đạo ôn", "Bọ gai")
 
+        if (detectionResults != null) {
+            detectionResults.add("Bọ gai")
+            println(detectionResults.toString())
+            lifecycleScope.launch(Dispatchers.IO) {
                 try {
-//                    detectionResults.forEach{ box ->
-//
-//                    }
-                    var CDT: List<CachDieuTri> = emptyList()
-                    var CPT: List<CachPhongTranh> = emptyList()
-                    if( disease.contains(detectionResults[0])) {
-                        CDT = db.cachDieuTri().getCachDieuTribyBenh(detectionResults[0])
-                        CPT = db.cachPhongTranh().getCachPhongTranhbyBenh(detectionResults[0])
-                    } else if (insect.contains(detectionResults[0]))
-                    {
-                        CDT = db.cachDieuTri().getCachDieuTribyCT(detectionResults[0])
-                        CPT = db.cachPhongTranh().getCachPhongTranhbyCT(detectionResults[0])
+                    val CDT: MutableList<CachDieuTri> = mutableListOf()
+                    val CPT: MutableList<CachPhongTranh> = mutableListOf()
+                    for (clsName in detectionResults) {
+
+
+                        if (disease.contains(clsName)) {
+                            println("Bệnh: $clsName")
+                            CDT.addAll(db.cachDieuTri().getCachDieuTribyBenh(clsName))
+                            CPT.addAll(db.cachPhongTranh().getCachPhongTranhbyBenh(clsName))
+                        } else if (insect.contains(clsName)) {
+                            println("Côn trùng: $clsName")
+                            CDT.addAll(db.cachDieuTri().getCachDieuTribyCT(clsName))
+                            println(db.cachDieuTri().getCachDieuTribyCT(clsName))
+                            CPT.addAll(db.cachPhongTranh().getCachPhongTranhbyCT(clsName))
+                            println(db.cachPhongTranh().getCachPhongTranhbyCT(clsName))
+                        }
+
+
+                        println("Cách điều trị: $CDT")
+                        println("Cách phòng tránh: $CPT")
                     }
 
-                    Log.d("RESULT", detectionResults[0])
 
-                    val title = "Kết quả nhận diện"
-                    val clsName = "Bệnh: " + detectionResults[0]
-                    val cdt_text = "Cách điều trị: \n"+CDT[0].CDT_ChiTiet + "\n"
-                    val cpt_text = "Cách phòng tránh: \n"+CPT[0].CPT_ChiTiet + "\n"
+                    Log.d("RESULT", detectionResults.toString())
 
-                    launch(Dispatchers.Main) {
-                        binding.txtResults.text = detectionResults[0]
-                        binding.txtResults2.text = clsName
-                        binding.txtResults3.text = cdt_text
-                        binding.txtResults4.text = cpt_text
+//                    val title = "Kết quả nhận diện"
+//                    val clsName = "Bệnh: " + detectionResults[0]
+//                    val cdt_text = "Cách điều trị: \n"+CDT[0].CDT_ChiTiet + "\n"
+//                    val cpt_text = "Cách phòng tránh: \n"+CPT[0].CPT_ChiTiet + "\n"
+
+                    resultsList = detectionResults.mapIndexed { index, cls ->
+                        DetectionResult(
+                            clsName = "$cls",
+                            cdtText = "\n${CDT[index].CDT_ChiTiet}\n",
+                            cptText = "\n${CPT[index].CPT_ChiTiet}\n"
+                        )
+                    }
+                    withContext(Dispatchers.Main) {
+                        val adapter = DetectionResultAdapter(resultsList!!.toMutableList()) // Chuyển sang MutableList
+                        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
+//                        binding.recyclerView.setHasFixedSize(true)
+//                        binding.recyclerView.itemAnimator = DefaultItemAnimator()
+                        binding.recyclerView.adapter = adapter
                     }
 
 //                    Log.d("ResultBottomSheet", "Kết quả detect:\n$resultText")
@@ -258,7 +284,7 @@ class ResultBottomSheetFragment : BottomSheetDialogFragment() {
                 }
             }
         } else {
-            binding.txtResults.text = "Không có kết quả nhận diện"
+            Log.e("DETECTION", "Không có kết quả nhận diện")
         }
         btnClose.setOnClickListener {
             dismiss() // Đóng BottomSheet
@@ -273,6 +299,7 @@ class ResultBottomSheetFragment : BottomSheetDialogFragment() {
         super.onDestroyView()
         _binding = null
     }
+
 
     companion object {
         fun newInstance(detectionResults: ArrayList<String>, bitmap: Bitmap?) =
