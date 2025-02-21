@@ -33,7 +33,7 @@ class DetectionResultAdapter(private val results: List<DetectionResult>) :
             binding.txtResults3.visibility = if (isExpanded) View.VISIBLE else View.GONE
             binding.txtResults4.visibility = if (isExpanded) View.VISIBLE else View.GONE
 
-            binding.imgArrow.rotation = if (isExpanded) 0f else 180f
+            binding.imgArrow.rotation = if (isExpanded) 180f else 0f
         }
     }
 

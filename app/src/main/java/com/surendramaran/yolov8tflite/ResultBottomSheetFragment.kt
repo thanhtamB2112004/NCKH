@@ -229,7 +229,7 @@ class ResultBottomSheetFragment : BottomSheetDialogFragment() {
         var disease = arrayOf("Cháy bìa lá", "Đốm nâu", "Đạo ôn", "Bọ gai")
 
         if (detectionResults != null) {
-            detectionResults.add("Bọ gai")
+//            detectionResults.add("Bọ gai")
             println(detectionResults.toString())
             lifecycleScope.launch(Dispatchers.IO) {
                 try {

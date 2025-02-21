@@ -59,7 +59,7 @@ class RealTimeDetectionActivity : AppCompatActivity(), DetectorListener {
         setContentView(binding!!.root)
 
         btnConfirm = binding!!.btnConfirm
-        btnSelectImage = binding!!.btnSelectImage
+
         detector = Detector(this, MODEL_PATH, LABELS_PATH, this)
         detector?.setup()
 

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#46C1F0AF"
+
     android:fillViewport="true">
 
     <LinearLayout
@@ -12,6 +12,7 @@
         android:orientation="vertical"
         android:padding="16dp"
         android:gravity="center_horizontal"
+        android:background="#46C1F0AF"
         android:clipToPadding="false">
 
         <View
@@ -25,10 +26,10 @@
         <ImageView
             android:id="@+id/imgResult"
             android:layout_width="match_parent"
-            android:layout_height="250dp"
+            android:layout_height="350dp"
             android:layout_marginTop="10dp"
-            android:scaleType="centerCrop"
-            android:background="@android:color/darker_gray" />
+            android:backgroundTint="#46C1F0AF"
+            android:scaleType="fitCenter" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerView"
@@ -36,18 +37,6 @@
             android:layout_height="wrap_content"
             android:padding="8dp"/>
 
-
-
-
-        <!-- Danh sách mở rộng -->
-<!--        <ExpandableListView-->
-<!--            android:id="@+id/expandableListView"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:divider="@android:color/darker_gray"-->
-<!--            android:dividerHeight="1dp"-->
-<!--            android:padding="8dp"-->
-<!--            android:background="@android:color/white"/>-->
 
         <Button
             android:id="@+id/btnClose"
